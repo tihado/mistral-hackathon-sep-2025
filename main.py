@@ -11,6 +11,7 @@ from search_products import (
     search_products,
 )
 from virtual_try_on import virtual_try_on
+from compare_products import compare_products, ComparedProduct
 
 load_dotenv()
 
@@ -185,44 +186,17 @@ def virtual_try_on_tool(
 def compare_products_tool(
     products: Annotated[
         List[Product],
-        "A list of Product objects to compare. Each Product should contain at least title, price, and image_url fields. Optional fields like rating, reviews_count, seller, and in_stock will be used for scoring and comparison.",
+        "A list of Product objects to compare and rank. Each Product should contain at least title, price, and image_url fields.",
     ],
-):
+) -> List[ComparedProduct]:
     """
-    Compares a list of products side by side using multiple criteria to help users select the best options.
-
-    The comparison considers:
-    - Price (lower is better; expects price as a float or numeric string)
-    - Product rating (higher is better; if available)
-    - In-stock status (in-stock products are prioritized)
-    - Additional fields such as reviews_count, seller, and brand may be used for further comparison if present.
-
-    The function calculates a score for each product based on these criteria, sorts the products by their scores, and returns the top 5 products as the best recommendations.
-
-    The returned list preserves all available product fields, including images, prices, ratings, and links, so the results can be displayed in a grid or card layout for easy visual comparison.
+    Compares and ranks products to help users select the best options from search results.
+    
+    Analyzes products based on price, rating, availability, and completeness to return the top 5 best options.
+    Returns products with mapped fields (name, price, image, link, rank, seller, rating, reviews_count) 
+    formatted for canvas display.
     """
-
-    if not products or not isinstance(products, list):
-        return []
-
-    # Example criteria: prioritize lower price, higher rating (if available), and in-stock status
-    def product_score(prod):
-        # Lower price is better, higher rating is better, in-stock preferred
-        price = prod.get("price", float("inf"))
-        rating = prod.get("rating", 0)
-        in_stock = 1 if prod.get("in_stock", True) else 0
-        # Weighted score: adjust as needed
-        return (in_stock * 1000) + (rating * 10) - price
-
-    # Sort products by score descending
-    sorted_products = sorted(products, key=product_score, reverse=True)
-    top_products = sorted_products[:5]
-
-    # Prepare output with required fields, mapping to expected output format
-    result = []
-    for prod in top_products:
-        result.append(prod)
-    return result
+    return compare_products(products)
 
 
 if __name__ == "__main__":
