@@ -6,11 +6,10 @@ import os
 from typing import Annotated, Literal, List, Dict, Any, TypedDict, Optional
 
 from mcp.server.fastmcp import FastMCP
-from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct
-from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
-from search_products import search_products
+from search_products import (
+    search_products,
+)
 from virtual_try_on import virtual_try_on
 
 load_dotenv()
@@ -40,97 +39,10 @@ class Product(TypedDict):
 # Initialize MCP server
 mcp = FastMCP("Shopping MCP Server", port=3000, stateless_http=True, debug=True)
 
-# Global variables for vector database and model
-vector_db = None
-embedding_model = None
-
-
-def initialize_vector_db():
-    """Initialize Qdrant and embedding model"""
-    global vector_db, embedding_model
-
-    try:
-        # Initialize Qdrant client (using in-memory mode for simplicity)
-        vector_db = QdrantClient(":memory:")
-
-        # Create collection for products
-        vector_db.create_collection(
-            collection_name="products",
-            vectors_config=VectorParams(
-                size=384, distance=Distance.COSINE  # all-MiniLM-L6-v2 embedding size
-            ),
-        )
-
-        # Initialize embedding model
-        embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-
-        # print("Vector database and embedding model initialized successfully")
-    except Exception as e:
-        # print(f"Error initializing vector database: {e}")
-        vector_db = None
-        embedding_model = None
-
 
 def get_openrouter_api_key():
     """Get OpenRouter API key from environment variable"""
     return os.getenv("OPENROUTER_API_KEY", "your_openrouter_api_key_here")
-
-
-@mcp.tool()
-def search_products_tool(
-    query: Annotated[str, "The search query for the desired products."],
-    category: Annotated[
-        Literal["clothing", "furniture", "other", "phone"],
-        "The product category to filter results. This should be clothing, furniture, phone, or other.",
-    ],
-    min_price: Annotated[int, "The minimum price for filtering products."] = None,
-    max_price: Annotated[int, "The maximum price for filtering products."] = None,
-    free_shipping: Annotated[
-        bool, "Whether to filter products with free shipping."
-    ] = None,
-    on_sale: Annotated[bool, "Whether to filter products on sale."] = None,
-    num_results: Annotated[int, "The number of product results to return."] = 10,
-):
-    """
-    Search for products based on a user query and optional filters such as category, price range, free shipping, and sale status.
-
-    This tool returns a list of relevant products that match the search criteria, including details such as product title, price, image, seller, and a link to purchase. You can specify the type of product (e.g., clothing, furniture, or other), set minimum and maximum price limits, and filter for free shipping or items on sale. The number of results returned can also be adjusted.
-
-    Use this tool to help users discover and browse products that fit their preferences and requirements.
-    """
-    return search_products(
-        query, num_results, min_price, max_price, free_shipping, on_sale, category
-    )
-
-
-@mcp.tool()
-def virtual_try_on_tool(
-    product_description: Annotated[str, "The description of the product to try on."],
-    product_image_data: Annotated[
-        str, "The product image as URL or base64 encoded data to try on."
-    ],
-    user_image_data: Annotated[
-        str, "The user image as URL or base64 encoded data to try on."
-    ],
-    category: Annotated[
-        Literal["clothing", "furniture", "other", "phone"],
-        "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, 'phone' for holding items, or 'other' for general items.",
-    ],
-):
-    """
-    Virtually try on a product using AI image generation.
-
-    For clothing: Shows the person wearing the clothing item
-    For furniture: Shows the furniture item placed in a realistic room setting
-    For phone: Shows the phone item in the person's hand
-    For other: Shows the item in an appropriate context
-
-    Supports both URL and base64 encoded image data for both product and user images.
-    Returns a generated image showing the virtual try-on result.
-    """
-    return virtual_try_on(
-        product_description, product_image_data, user_image_data, category
-    )
 
 
 @mcp.tool()
@@ -210,6 +122,63 @@ Assistant: "Please upload your portrait or provide a URL to your photo so I can 
 Always clarify needs, fill in missing details, and use the tools in this **EXACT** order: `search_products_tool` → `compare_products_tool` → `virtual_try_on_tool`. This workflow is **MANDATORY** and cannot be skipped or reordered. If a user tries to skip steps, politely explain that you must follow the complete workflow to provide the best shopping experience.
 """
     }
+
+
+@mcp.tool()
+def search_products_tool(
+    query: Annotated[str, "The search query for the desired products."],
+    category: Annotated[
+        Literal["clothing", "furniture", "other", "phone"],
+        "The product category to filter results. This should be clothing, furniture, phone, or other.",
+    ],
+    min_price: Annotated[int, "The minimum price for filtering products."] = None,
+    max_price: Annotated[int, "The maximum price for filtering products."] = None,
+    free_shipping: Annotated[
+        bool, "Whether to filter products with free shipping."
+    ] = None,
+    on_sale: Annotated[bool, "Whether to filter products on sale."] = None,
+    num_results: Annotated[int, "The number of product results to return."] = 10,
+):
+    """
+    Search for products based on a user query and optional filters such as category, price range, free shipping, and sale status.
+
+    This tool returns a list of relevant products that match the search criteria, including details such as product title, price, image, seller, and a link to purchase. You can specify the type of product (e.g., clothing, furniture, or other), set minimum and maximum price limits, and filter for free shipping or items on sale. The number of results returned can also be adjusted.
+
+    Use this tool to help users discover and browse products that fit their preferences and requirements.
+    """
+    return search_products(
+        query, num_results, min_price, max_price, free_shipping, on_sale, category
+    )
+
+
+@mcp.tool()
+def virtual_try_on_tool(
+    product_description: Annotated[str, "The description of the product to try on."],
+    product_image_data: Annotated[
+        str, "The product image as URL or base64 encoded data to try on."
+    ],
+    user_image_data: Annotated[
+        str, "The user image as URL or base64 encoded data to try on."
+    ],
+    category: Annotated[
+        Literal["clothing", "furniture", "other", "phone"],
+        "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, 'phone' for holding items, or 'other' for general items.",
+    ],
+):
+    """
+    Virtually try on a product using AI image generation.
+
+    For clothing: Shows the person wearing the clothing item
+    For furniture: Shows the furniture item placed in a realistic room setting
+    For phone: Shows the phone item in the person's hand
+    For other: Shows the item in an appropriate context
+
+    Supports both URL and base64 encoded image data for both product and user images.
+    Returns a generated image showing the virtual try-on result.
+    """
+    return virtual_try_on(
+        product_description, product_image_data, user_image_data, category
+    )
 
 
 @mcp.tool()

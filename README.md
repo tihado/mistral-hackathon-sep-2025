@@ -14,11 +14,13 @@ This MCP server integrates with Google Shopping via SerpAPI to provide real-time
 - Filter by price range, category, and other criteria
 - Returns detailed product information including images, prices, and seller details
 
-### 🧠 **Semantic Search & Recommendations**
+### 🧠 **Semantic Search & Vector Database**
 
-- Vector database powered by Qdrant for intelligent product matching
-- Personalized recommendations based on user preferences
-- Semantic search using sentence transformers
+- **Vector Database Integration**: Powered by Qdrant for intelligent product matching and storage
+- **Semantic Search**: Find products using natural language queries with sentence transformers
+- **Product Persistence**: Automatically save searched products to vector database for future retrieval
+- **Hybrid Search**: Choose between searching saved products (vector DB) or discovering new ones (internet)
+- **Smart Filtering**: Filter by category, price range, and other criteria with semantic understanding
 
 ### 📊 **Product Comparison**
 
@@ -46,6 +48,36 @@ This MCP server integrates with Google Shopping via SerpAPI to provide real-time
 - Install uv (https://docs.astral.sh/uv/getting-started/installation/)
 - Python 3.13+
 - SerpAPI key (optional, for real product search)
+- Qdrant vector database (local or cloud instance)
+
+### Setting up Qdrant Vector Database
+
+**Option 1: Local Qdrant (Recommended for development)**
+
+```bash
+# Using Docker
+docker run -p 6333:6333 qdrant/qdrant
+
+# Or using Docker Compose
+echo "version: '3.8'
+services:
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - '6333:6333'
+    volumes:
+      - qdrant_storage:/qdrant/storage
+volumes:
+  qdrant_storage:" > docker-compose.yml
+docker-compose up -d
+```
+
+**Option 2: Cloud Qdrant (For production)**
+
+1. Sign up at [Qdrant Cloud](https://cloud.qdrant.io/)
+2. Create a cluster
+3. Get your cluster URL and API key
+4. Set the environment variables in your `.env` file
 
 ## Installation
 
@@ -75,6 +107,14 @@ SERPAPI_KEY=your_serpapi_key_here
 # OpenRouter API Configuration
 # Get your API key from: https://openrouter.ai/keys
 OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# Qdrant Vector Database Configuration
+# For local Qdrant instance (default)
+QDRANT_URL=http://localhost:6333
+
+# For cloud Qdrant instance (optional)
+# QDRANT_URL=https://your-cluster-url.eu-central.aws.cloud.qdrant.io:6333
+# QDRANT_API_KEY=your_qdrant_api_key_here
 
 # AWS S3 Configuration (for virtual try-on image storage)
 # Get your credentials from: https://aws.amazon.com/
@@ -147,6 +187,7 @@ Search for products using Google Shopping via SerpAPI.
 - `num_results` (int, optional): The number of product results to return (default: 10)
 
 **Returns:**
+
 - `List[dict]`: A list of product information dictionaries
 
 ### `compare_products_tool`
@@ -158,6 +199,7 @@ Compare products side by side based on different criteria and return the top 5 b
 - `products` (List[Dict[str, Any]]): List of product dictionaries as returned by search_products_tool to compare and rank
 
 **Returns:**
+
 - `List[Dict[str, Any]]`: Top 5 product options with basic info, price, link, and image
 
 ### `virtual_try_on_tool`
@@ -171,6 +213,7 @@ Virtually try on a product using AI image generation with OpenRouter (Google Gem
 - `category` (string, optional): The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, or 'other' for general items (default: 'clothing')
 
 **Features:**
+
 - For clothing: Shows the person wearing the clothing item
 - For furniture: Shows the furniture item placed in a realistic room setting
 - For other: Shows the item in an appropriate context
@@ -183,15 +226,18 @@ Always use this prompt for users who want to find, compare, or try on any shoppi
 **Parameters:** None
 
 **Returns:**
+
 - `dict`: Contains the system prompt for the shopping assistant
 
 **Workflow:**
 The shopping assistant follows a specific workflow:
+
 1. **search_products_tool** → Search for products based on user query
-2. **compare_products_tool** → Compare and rank the search results  
+2. **compare_products_tool** → Compare and rank the search results
 3. **virtual_try_on_tool** → Allow users to virtually try on selected products
 
 **Key Features:**
+
 - Always displays results in a canvas/grid layout with product images, names, prices, and links as cards or tiles
 - Clarifies user preferences before searching (color, price range, style, brand, size)
 - Requires both product and user images for virtual try-on
@@ -200,6 +246,7 @@ The shopping assistant follows a specific workflow:
 - Never proceeds with virtual try-on until both images are provided
 
 **Example Usage Flow:**
+
 ```
 User: "I'm looking for a dress"
 Assistant: "What color, style, or price range do you prefer? Any specific brand?"
