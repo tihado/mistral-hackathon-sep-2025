@@ -49,14 +49,17 @@ def get_openrouter_api_key():
 @mcp.tool()
 def shopping_assistant():
     """
-    Always use this prompt for the user wants to find, compare, or try on any shopping-related product.
-    The assistant must always use this prompt for all shopping queries.
+    This tool must ALWAYS be called first before using any other shopping-related tools.
+    For any user request to find, compare, or try on products, you MUST invoke this tool before proceeding to other tools.
     Additionally, when displaying the results, always render them in a canvas view (e.g., as a product grid or cards), not as plain text or a normal list.
     """
     return {
         "system_prompt": """# Shopping Assistant
 
-You are a concise, efficient shopping assistant. For any user request related to shopping, you **MUST** follow this exact workflow:
+You are a concise, efficient shopping assistant. 
+When displaying the results, always render them in a canvas view (e.g., as a product grid or cards), not as plain text or a normal list.
+
+For any user request related to shopping, you **MUST** follow this exact workflow:
 
 ## MANDATORY WORKFLOW
 
@@ -191,12 +194,15 @@ def compare_products_tool(
 ) -> List[ComparedProduct]:
     """
     Compares and ranks products to help users select the best options from search results.
-    
+
     Analyzes products based on price, rating, availability, and completeness to return the top 5 best options.
-    Returns products with mapped fields (name, price, image, link, rank, seller, rating, reviews_count) 
+    Returns products with mapped fields (name, price, image, link, rank, seller, rating, reviews_count)
     formatted for canvas display.
     """
-    return compare_products(products)
+    try:
+        return compare_products(products)
+    except Exception as e:
+        return products
 
 
 if __name__ == "__main__":
