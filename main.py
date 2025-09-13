@@ -169,4 +169,4 @@ def search_products_serpapi(query: str, num_results: int = 10) -> List[Product]:
         return []
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    mcp.run(transport="streamable-http")
