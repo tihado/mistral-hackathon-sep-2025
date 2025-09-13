@@ -22,19 +22,13 @@ class Product(TypedDict):
 
     title: Annotated[str, "Product name/title"]
     price: Annotated[str, 'Product price as string (e.g., "29.99")']
-    currency: Annotated[str, 'Currency code (e.g., "USD", "EUR")']
+    currency: Optional[Annotated[str, 'Currency code (e.g., "USD", "EUR")']]
     image_url: Annotated[str, "URL to product image"]
     source_url: Annotated[str, "URL to product page"]
-    seller: Annotated[str, "Seller/store name"]
-    rating: Annotated[Optional[float], "Product rating (0.0-5.0)"]
-    reviews_count: Annotated[Optional[int], "Number of reviews"]
-    description: Annotated[Optional[str], "Product description"]
-    category: Annotated[Optional[str], "Product category"]
-    brand: Annotated[Optional[str], "Product brand"]
-    delivery: Annotated[Optional[str], "Delivery information"]
-    original_price: Annotated[Optional[str], "Original price if on sale"]
-    tags: Annotated[Optional[List[str]], "Product tags/keywords"]
-    in_stock: Annotated[Optional[bool], "Availability status"]
+    seller: Optional[Annotated[str, "Seller/store name"]]
+    rating: Optional[Annotated[float, "Product rating (0.0-5.0)"]]
+    reviews_count: Optional[Annotated[int, "Number of reviews"]]
+    description: Optional[Annotated[str, "Product description"]]
 
 
 # Initialize MCP server
@@ -182,7 +176,7 @@ def virtual_try_on_tool(
 @mcp.tool()
 def compare_products_tool(
     products: Annotated[
-        List[Product],
+        List[Dict[str, Any]],
         "A list of Product objects to compare and rank. Each Product should contain at least title, price, and image_url fields.",
     ],
 ) -> List[ComparedProduct]:
@@ -194,7 +188,23 @@ def compare_products_tool(
     formatted for canvas display.
     """
     try:
-        return compare_products(products)
+        # Ensure all products have required fields with defaults
+        normalized_products = []
+        for product in products:
+            normalized_product = {
+                "title": product.get("title", "Unknown Product"),
+                "price": product.get("price", "N/A"),
+                "currency": product.get("currency", "EUR"),
+                "image_url": product.get("image_url", ""),
+                "source_url": product.get("source_url", ""),
+                "seller": product.get("seller", "Unknown Seller"),
+                "rating": product.get("rating", 0),
+                "reviews_count": product.get("reviews_count", 0),
+                "description": product.get("description", "Unknown Description"),
+            }
+            normalized_products.append(normalized_product)
+
+        return compare_products(normalized_products)
     except Exception as e:
         return products
 
