@@ -132,77 +132,86 @@ You can test your server locally by selecting:
 
 ## Available MCP Tools
 
-### `search_products`
+### `search_products_tool`
 
 Search for products using Google Shopping via SerpAPI.
 
 **Parameters:**
 
-- `query` (string): The search query for products
-- `num_results` (int, optional): Number of results to return (default: 10)
-- `budget_min` (float, optional): Minimum price filter
-- `budget_max` (float, optional): Maximum price filter
-- `category` (string, optional): Product category filter
+- `query` (string): The search query for the desired products
+- `category` (string): The product category to filter results. Must be "clothing", "furniture", or "other"
+- `min_price` (int, optional): The minimum price for filtering products
+- `max_price` (int, optional): The maximum price for filtering products
+- `free_shipping` (bool, optional): Whether to filter products with free shipping
+- `on_sale` (bool, optional): Whether to filter products on sale
+- `num_results` (int, optional): The number of product results to return (default: 10)
 
-### `compare_products`
+**Returns:**
+- `List[dict]`: A list of product information dictionaries
 
-Compare multiple products side by side.
+### `compare_products_tool`
 
-**Parameters:**
-
-- `product_ids` (list): List of product IDs to compare
-
-### `recommend_products`
-
-Get personalized product recommendations based on user preferences.
+Compare products side by side based on different criteria and return the top 5 best options.
 
 **Parameters:**
 
-- `user_preferences` (string): User preferences, style, or search query
-- `num_recommendations` (int, optional): Number of recommendations to return (default: 5)
+- `products` (List[Dict[str, Any]]): List of product dictionaries as returned by search_products_tool to compare and rank
 
-### `virtual_try_on`
+**Returns:**
+- `List[Dict[str, Any]]`: Top 5 product options with basic info, price, link, and image
 
-Virtually try on clothing, furniture, or other items using AI image generation with both product and user images.
+### `virtual_try_on_tool`
 
-**Parameters:**
-
-- `product_image_data` (string): Product image as URL or base64 encoded data
-- `user_image_data` (string, optional): User image as URL or base64 encoded data
-- `category` (string, optional): Type of try-on: 'clothing', 'furniture', or 'other' (default: 'clothing')
-
-### `track_price`
-
-Set up price alerts for products.
+Virtually try on a product using AI image generation with OpenRouter (Google Gemini 2.5 Flash).
 
 **Parameters:**
 
-- `product_id` (string): ID of the product to track
-- `target_price` (float): Target price for the alert
-- `current_price` (float): Current price of the product
+- `product_image_data` (string): The product image as URL or base64 encoded data to try on
+- `user_image_data` (string): The user image as URL or base64 encoded data to try on
+- `category` (string, optional): The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, or 'other' for general items (default: 'clothing')
 
-### `get_alerts`
-
-Get all active price alerts.
-
-**Parameters:** None
-
-## Available MCP Resources
-
-### `product://{product_id}`
-
-Get detailed information about a specific product.
-
-## Available MCP Prompts
+**Features:**
+- For clothing: Shows the person wearing the clothing item
+- For furniture: Shows the furniture item placed in a realistic room setting
+- For other: Shows the item in an appropriate context
+- Supports both URL and base64 encoded image data for both product and user images
 
 ### `shopping_assistant`
 
-Generate a helpful shopping assistant prompt based on user query and context.
+Always use this prompt for users who want to find, compare, or try on any shopping-related product. The assistant must always use this prompt for all shopping queries.
 
-**Parameters:**
+**Parameters:** None
 
-- `user_query` (string): User's shopping query or request
-- `context` (string, optional): Additional context about the user's needs
+**Returns:**
+- `dict`: Contains the system prompt for the shopping assistant
+
+**Workflow:**
+The shopping assistant follows a specific workflow:
+1. **search_products_tool** → Search for products based on user query
+2. **compare_products_tool** → Compare and rank the search results  
+3. **virtual_try_on_tool** → Allow users to virtually try on selected products
+
+**Key Features:**
+- Always displays results in a canvas/grid layout with product images, names, prices, and links as cards or tiles
+- Clarifies user preferences before searching (color, price range, style, brand, size)
+- Requires both product and user images for virtual try-on
+- Supports different categories: clothing, furniture, and other items
+- Asks for user photos when needed (portrait for clothing, room photos for furniture/other)
+- Never proceeds with virtual try-on until both images are provided
+
+**Example Usage Flow:**
+```
+User: "I'm looking for a dress"
+Assistant: "What color, style, or price range do you prefer? Any specific brand?"
+
+User: "A red dress under $100"
+Assistant: [Calls search_products_tool] → [Calls compare_products_tool] → Shows product grid
+
+User: "I like the second dress. Can I see how it looks on me?"
+Assistant: "Please upload your portrait or provide a URL to your photo"
+User: [Provides photo]
+Assistant: [Calls virtual_try_on_tool with both images, category="clothing"]
+```
 
 ## Development
 
