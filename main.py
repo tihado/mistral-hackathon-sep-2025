@@ -6,7 +6,7 @@ import os
 import json
 import base64
 import requests
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Annotated, Literal
 from datetime import datetime
 from io import BytesIO
 
@@ -19,6 +19,8 @@ from PIL import Image, ImageDraw, ImageFont
 import google.genai as genai
 import numpy as np
 from dotenv import load_dotenv
+from search_products import search_products
+from virtual_try_on import virtual_try_on
 
 import mcp.types as types
 
@@ -108,22 +110,37 @@ def initialize_gemini():
         # print(f"Error initializing Gemini: {e}")
         return None
 
-@mcp.tool
-def search_products(query: str, num_results: int = 10, budget_min: float = None, budget_max: float = None, category: str = None):
-    """Search for products using Google Shopping via SerpAPI."""
-    return {}
+@mcp.tool()
+def search_products_tool(
+    query: Annotated[str, "The search query for the desired products."],
+    category: Annotated[Literal["clothing", "furniture", "other"], "The product category to filter results. This should be clothing, furniture, or other."],
+    min_price: Annotated[float, "The minimum price for filtering products."] = None,
+    max_price: Annotated[float, "The maximum price for filtering products."] = None,
+    free_shipping: Annotated[bool, "Whether to filter products with free shipping."] = None,
+    on_sale: Annotated[bool, "Whether to filter products on sale."] = None,
+    num_results: Annotated[int, "The number of product results to return."] = 10,
+):
+    """
+    Search for products using Google Shopping via SerpAPI.
+    Returns:
+        List[dict]: A list of product information dictionaries.
+    """
+    return search_products(query, num_results, min_price, max_price, free_shipping, on_sale, category)
 
-@mcp.tool
-def virtual_try_on(product_id: str, user_image_data: str = None):
+@mcp.tool()
+def virtual_try_on_tool(
+    product_image_data: Annotated[str, "The image data of the product to try on."], 
+    user_image_data: Annotated[str, "The image data of the user to try on."]
+  ):
     """Virtually try on a product using AI image generation with both product and user images."""
-    return {}
+    return virtual_try_on(product_image_data, user_image_data)
 
-@mcp.prompt
+@mcp.prompt()
 def shopping_assistant():
     """Generate a helpful shopping assistant prompt based on user query and context."""
     return """You are a helpful shopping assistant. You are given a user query and context. You need to generate a helpful shopping assistant prompt based on user query and context."""
 
-@mcp.prompt
+@mcp.prompt()
 def compare_products():
     """Compare products side by side."""
     return """You are a helpful shopping assistant. You are given a user query and context. You need to generate a helpful shopping assistant prompt based on user query and context."""
