@@ -3,15 +3,12 @@ Shopping MCP Server with SerpAPI + Virtual Try-On
 """
 
 import os
-from typing import List, Optional, Dict, Any, Annotated, Literal
-from datetime import datetime
+from typing import Annotated, Literal
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import Field, BaseModel
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from sentence_transformers import SentenceTransformer
-import google.genai as genai
 from dotenv import load_dotenv
 from search_products import search_products
 from virtual_try_on import virtual_try_on
@@ -24,34 +21,6 @@ mcp = FastMCP("Shopping MCP Server", port=3000, stateless_http=True, debug=True)
 # Global variables for vector database and model
 vector_db = None
 embedding_model = None
-gemini_model = None
-price_alerts = {}
-
-# Product data models
-class Product(BaseModel):
-    id: str
-    title: str
-    price: str
-    currency: str
-    image_url: str
-    source_url: str
-    seller: str
-    rating: Optional[float] = None
-    reviews_count: Optional[int] = None
-    description: Optional[str] = None
-    category: Optional[str] = None
-    brand: Optional[str] = None
-
-class ProductComparison(BaseModel):
-    products: List[Product]
-    comparison_data: Dict[str, Any]
-
-class PriceAlert(BaseModel):
-    product_id: str
-    target_price: float
-    current_price: float
-    created_at: datetime
-    is_active: bool = True
 
 def initialize_vector_db():
     """Initialize Qdrant and embedding model"""

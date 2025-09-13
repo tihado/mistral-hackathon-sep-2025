@@ -81,7 +81,9 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 AWS_ACCESS_KEY_ID=your_aws_access_key_here
 AWS_SECRET_ACCESS_KEY=your_aws_secret_key_here
 AWS_S3_BUCKET_NAME=your_s3_bucket_name_here
-AWS_REGION=us-east-1
+AWS_REGION=auto
+AWS_ENDPOINT_URL="https://..."
+AWS_PUBLIC_URL="https://..."
 ```
 
 Or export them directly:
@@ -92,7 +94,9 @@ export OPENROUTER_API_KEY="your_openrouter_api_key_here"
 export AWS_ACCESS_KEY_ID="your_aws_access_key_here"
 export AWS_SECRET_ACCESS_KEY="your_aws_secret_key_here"
 export AWS_S3_BUCKET_NAME="your_s3_bucket_name_here"
-export AWS_REGION="us-east-1"
+export AWS_REGION="auto"
+export AWS_ENDPOINT_URL="https://..."
+export AWS_PUBLIC_URL="https://..."
 ```
 
 ## Usage
