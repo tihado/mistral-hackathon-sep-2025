@@ -1,0 +1,20 @@
+[project]
+name = "shopping-mcp"
+version = "0.1.0"
+description = "Shopping MCP Server with SerpAPI + Virtual Try-On"
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [{ name = "Alpic" }]
+keywords = ["mcp", "llm", "shopping", "serpapi", "virtual-try-on"]
+dependencies = [
+    "black>=25.1.0",
+    "mcp",
+    "requests>=2.31.0",
+    "qdrant-client>=1.7.0",
+    "pydantic>=2.0.0",
+    "pillow>=10.0.0",
+    "google-search-results>=2.4.2",
+    "google-genai>=0.1.0",
+    "numpy>=1.24.0",
+    "sentence-transformers>=2.2.0",
+]
