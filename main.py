@@ -108,65 +108,25 @@ def initialize_gemini():
         # print(f"Error initializing Gemini: {e}")
         return None
 
-def search_products_serpapi(query: str, num_results: int = 10) -> List[Product]:
-    """Search products using SerpAPI Google Shopping"""
-    api_key = get_serpapi_key()
-    if api_key == 'your_serpapi_key_here':
-        # Return mock data for demo purposes
-        return [
-            Product(
-                id=f"mock_{i}",
-                title=f"Mock Product {i} - {query}",
-                price=f"${(i + 1) * 29.99:.2f}",
-                currency="USD",
-                image_url="https://via.placeholder.com/300x300?text=Product+Image",
-                source_url=f"https://example.com/product/{i}",
-                seller=f"Mock Store {i}",
-                rating=4.0 + (i % 2) * 0.5,
-                reviews_count=100 + i * 50,
-                description=f"This is a mock product related to {query}",
-                category="Electronics",
-                brand=f"Brand {i}"
-            )
-            for i in range(min(num_results, 5))
-        ]
-    
-    try:
-        url = "https://serpapi.com/search"
-        params = {
-            'api_key': api_key,
-            'engine': 'google_shopping',
-            'q': query,
-            'num': num_results
-        }
-        
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
-        
-        products = []
-        if 'shopping_results' in data:
-            for i, item in enumerate(data['shopping_results']):
-                product = Product(
-                    id=f"serp_{i}",
-                    title=item.get('title', ''),
-                    price=item.get('price', '0'),
-                    currency=item.get('currency', 'USD'),
-                    image_url=item.get('thumbnail', ''),
-                    source_url=item.get('link', ''),
-                    seller=item.get('source', ''),
-                    rating=item.get('rating'),
-                    reviews_count=item.get('reviews'),
-                    description=item.get('description', ''),
-                    category=item.get('category', ''),
-                    brand=item.get('brand', '')
-                )
-                products.append(product)
-        
-        return products
-    except Exception as e:
-        # print(f"Error searching products: {e}")
-        return []
+@mcp.tool
+def search_products(query: str, num_results: int = 10, budget_min: float = None, budget_max: float = None, category: str = None):
+    """Search for products using Google Shopping via SerpAPI."""
+    return {}
+
+@mcp.tool
+def virtual_try_on(product_id: str, user_image_data: str = None):
+    """Virtually try on a product using AI image generation with both product and user images."""
+    return {}
+
+@mcp.prompt
+def shopping_assistant():
+    """Generate a helpful shopping assistant prompt based on user query and context."""
+    return """You are a helpful shopping assistant. You are given a user query and context. You need to generate a helpful shopping assistant prompt based on user query and context."""
+
+@mcp.prompt
+def compare_products():
+    """Compare products side by side."""
+    return """You are a helpful shopping assistant. You are given a user query and context. You need to generate a helpful shopping assistant prompt based on user query and context."""
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
