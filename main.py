@@ -3,7 +3,7 @@ Shopping MCP Server with SerpAPI + Virtual Try-On
 """
 
 import os
-from typing import Annotated, Literal, List, Dict, Any
+from typing import Annotated, Literal, List, Dict, Any, TypedDict, Optional
 
 from mcp.server.fastmcp import FastMCP
 from qdrant_client import QdrantClient
@@ -15,6 +15,28 @@ from virtual_try_on import virtual_try_on
 
 load_dotenv()
 
+
+# Product data structure definition
+class Product(TypedDict):
+    """Product data structure for shopping results and comparisons."""
+
+    title: Annotated[str, "Product name/title"]
+    price: Annotated[str, 'Product price as string (e.g., "29.99")']
+    currency: Annotated[str, 'Currency code (e.g., "USD", "EUR")']
+    image_url: Annotated[str, "URL to product image"]
+    source_url: Annotated[str, "URL to product page"]
+    seller: Annotated[str, "Seller/store name"]
+    rating: Annotated[Optional[float], "Product rating (0.0-5.0)"]
+    reviews_count: Annotated[Optional[int], "Number of reviews"]
+    description: Annotated[Optional[str], "Product description"]
+    category: Annotated[Optional[str], "Product category"]
+    brand: Annotated[Optional[str], "Product brand"]
+    delivery: Annotated[Optional[str], "Delivery information"]
+    original_price: Annotated[Optional[str], "Original price if on sale"]
+    tags: Annotated[Optional[List[str]], "Product tags/keywords"]
+    in_stock: Annotated[Optional[bool], "Availability status"]
+
+
 # Initialize MCP server
 mcp = FastMCP("Shopping MCP Server", port=3000, stateless_http=True, debug=True)
 
@@ -22,66 +44,85 @@ mcp = FastMCP("Shopping MCP Server", port=3000, stateless_http=True, debug=True)
 vector_db = None
 embedding_model = None
 
+
 def initialize_vector_db():
     """Initialize Qdrant and embedding model"""
     global vector_db, embedding_model
-    
+
     try:
         # Initialize Qdrant client (using in-memory mode for simplicity)
         vector_db = QdrantClient(":memory:")
-        
+
         # Create collection for products
         vector_db.create_collection(
             collection_name="products",
             vectors_config=VectorParams(
-                size=384,  # all-MiniLM-L6-v2 embedding size
-                distance=Distance.COSINE
-            )
+                size=384, distance=Distance.COSINE  # all-MiniLM-L6-v2 embedding size
+            ),
         )
-        
+
         # Initialize embedding model
-        embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-        
+        embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
         # print("Vector database and embedding model initialized successfully")
     except Exception as e:
         # print(f"Error initializing vector database: {e}")
         vector_db = None
         embedding_model = None
 
+
 def get_openrouter_api_key():
     """Get OpenRouter API key from environment variable"""
-    return os.getenv('OPENROUTER_API_KEY', 'your_openrouter_api_key_here')
+    return os.getenv("OPENROUTER_API_KEY", "your_openrouter_api_key_here")
+
 
 @mcp.tool()
 def search_products_tool(
     query: Annotated[str, "The search query for the desired products."],
-    category: Annotated[Literal["clothing", "furniture", "other"], "The product category to filter results. This should be clothing, furniture, or other."],
+    category: Annotated[
+        Literal["clothing", "furniture", "other"],
+        "The product category to filter results. This should be clothing, furniture, or other.",
+    ],
     min_price: Annotated[int, "The minimum price for filtering products."] = None,
     max_price: Annotated[int, "The maximum price for filtering products."] = None,
-    free_shipping: Annotated[bool, "Whether to filter products with free shipping."] = None,
+    free_shipping: Annotated[
+        bool, "Whether to filter products with free shipping."
+    ] = None,
     on_sale: Annotated[bool, "Whether to filter products on sale."] = None,
     num_results: Annotated[int, "The number of product results to return."] = 10,
 ):
     """
-    Search for products using Google Shopping via SerpAPI.
-    Returns:
-        List[dict]: A list of product information dictionaries.
+    Search for products based on a user query and optional filters such as category, price range, free shipping, and sale status.
+
+    This tool returns a list of relevant products that match the search criteria, including details such as product title, price, image, seller, and a link to purchase. You can specify the type of product (e.g., clothing, furniture, or other), set minimum and maximum price limits, and filter for free shipping or items on sale. The number of results returned can also be adjusted.
+
+    Use this tool to help users discover and browse products that fit their preferences and requirements.
     """
-    return search_products(query, num_results, min_price, max_price, free_shipping, on_sale, category)
+    return search_products(
+        query, num_results, min_price, max_price, free_shipping, on_sale, category
+    )
+
 
 @mcp.tool()
 def virtual_try_on_tool(
-    product_image_data: Annotated[str, "The product image as URL or base64 encoded data to try on."], 
-    user_image_data: Annotated[str, "The user image as URL or base64 encoded data to try on."],
-    category: Annotated[Literal["clothing", "furniture", "other"], "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, or 'other' for general items."] = "clothing"
-  ):
+    product_image_data: Annotated[
+        str, "The product image as URL or base64 encoded data to try on."
+    ],
+    user_image_data: Annotated[
+        str, "The user image as URL or base64 encoded data to try on."
+    ],
+    category: Annotated[
+        Literal["clothing", "furniture", "other"],
+        "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, or 'other' for general items.",
+    ],
+):
     """
-    Virtually try on a product using AI image generation with OpenRouter (Google Gemini 2.5 Flash).
-    
+    Virtually try on a product using AI image generation.
+
     For clothing: Shows the person wearing the clothing item
     For furniture: Shows the furniture item placed in a realistic room setting
     For other: Shows the item in an appropriate context
-    
+
     Supports both URL and base64 encoded image data for both product and user images.
     Returns a generated image showing the virtual try-on result.
     """
@@ -141,16 +182,28 @@ Always clarify needs, fill in missing details, and use the tools in this order: 
 """
     }
 
+
 @mcp.tool()
 def compare_products_tool(
-    products: Annotated[List[Dict[str, Any]], "List of product dictionaries as returned by search_products_tool to compare and rank."]
+    products: Annotated[
+        List[Product],
+        "A list of Product objects to compare. Each Product should contain at least title, price, and image_url fields. Optional fields like rating, reviews_count, seller, and in_stock will be used for scoring and comparison.",
+    ],
 ):
     """
-    Compare products side by side based on different criteria and return the top 5 best options.
-    
-    Returns:
-        List[Dict[str, Any]]: Top 5 product options with basic info, price, link, and image.
+    Compares a list of products side by side using multiple criteria to help users select the best options.
+
+    The comparison considers:
+    - Price (lower is better; expects price as a float or numeric string)
+    - Product rating (higher is better; if available)
+    - In-stock status (in-stock products are prioritized)
+    - Additional fields such as reviews_count, seller, and brand may be used for further comparison if present.
+
+    The function calculates a score for each product based on these criteria, sorts the products by their scores, and returns the top 5 products as the best recommendations.
+
+    The returned list preserves all available product fields, including images, prices, ratings, and links, so the results can be displayed in a grid or card layout for easy visual comparison.
     """
+
     if not products or not isinstance(products, list):
         return []
 
@@ -167,19 +220,12 @@ def compare_products_tool(
     sorted_products = sorted(products, key=product_score, reverse=True)
     top_products = sorted_products[:5]
 
-    # Prepare output with required fields
+    # Prepare output with required fields, mapping to expected output format
     result = []
     for prod in top_products:
-        result.append({
-            "name": prod.get("name"),
-            "price": prod.get("price"),
-            "link": prod.get("link"),
-            "image": prod.get("image"),
-            "seller": prod.get("seller"),
-            "rating": prod.get("rating"),
-            "in_stock": prod.get("in_stock", True),
-        })
+        result.append(prod)
     return result
+
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
