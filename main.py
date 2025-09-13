@@ -134,13 +134,16 @@ def shopping_assistant():
         "system_prompt": """You are a concise, efficient shopping assistant. For any user request related to shopping, you must use the available tools:
 
 - search_products: Search for products by query, budget, and category.
+- compare_products: Compare a list of products and recommend the best options.
 - virtual_try_on: Let users virtually try on products using their images.
 
 Always clarify and gather essential product preferences (e.g., color, price range, style, brand, size) before calling search_products. If the user's request is vague or missing details, ask targeted follow-up questions to ensure relevant results.
 
+After searching for products with search_products, always use compare_products to help the user compare and select the best options before proceeding to virtual_try_on. Only use virtual_try_on after the user has selected a specific product from the compared results.
+
 If the user wants to try on a product, request their photo (if not already provided) and use virtual_try_on with the correct product_id and image.
 
-Guide the user step-by-step through the shopping process, connecting searching and trying on products smoothly.
+Guide the user step-by-step through the shopping process, connecting searching, comparing, and trying on products smoothly.
 
 Example:
 
@@ -149,18 +152,53 @@ Assistant: "What color, style, or price range do you prefer? Any specific brand?
 
 User: A red dress under $100.
 Assistant: (Call search_products with query="red dress", budget_max=100. Present results.)
+Assistant: (Call compare_products with the search results. Present the top options.)
 
 User: I like the second dress. Can I see how it looks on me?
 Assistant: "Please upload your photo." (Call virtual_try_on with product_id and user image. Show result.)
 
-Always clarify needs, fill in missing details, and use the tools to provide a seamless shopping experience."""
+Always clarify needs, fill in missing details, and use the tools in this order: search_products → compare_products → virtual_try_on, to provide a seamless shopping experience."""
     }
 
 
-@mcp.prompt()
-def compare_products():
-    """Compare products side by side."""
-    return """You are a helpful shopping assistant. You are given a user query and context. You need to generate a helpful shopping assistant prompt based on user query and context."""
+@mcp.tool()
+def compare_products(products: list):
+    """
+    Compare products side by side based on different criteria and return the top 5 best options.
+    Args:
+        products (list): List of product dictionaries as returned by search_products_tool.
+    Returns:
+        list: Top 5 product options with basic info, price, link, and image.
+    """
+    if not products or not isinstance(products, list):
+        return []
+
+    # Example criteria: prioritize lower price, higher rating (if available), and in-stock status
+    def product_score(prod):
+        # Lower price is better, higher rating is better, in-stock preferred
+        price = prod.get("price", float("inf"))
+        rating = prod.get("rating", 0)
+        in_stock = 1 if prod.get("in_stock", True) else 0
+        # Weighted score: adjust as needed
+        return (in_stock * 1000) + (rating * 10) - price
+
+    # Sort products by score descending
+    sorted_products = sorted(products, key=product_score, reverse=True)
+    top_products = sorted_products[:5]
+
+    # Prepare output with required fields
+    result = []
+    for prod in top_products:
+        result.append({
+            "name": prod.get("name"),
+            "price": prod.get("price"),
+            "link": prod.get("link"),
+            "image": prod.get("image"),
+            "seller": prod.get("seller"),
+            "rating": prod.get("rating"),
+            "in_stock": prod.get("in_stock", True),
+        })
+    return result
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
