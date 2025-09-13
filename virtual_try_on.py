@@ -188,7 +188,7 @@ def is_url(image_data: str) -> bool:
 
 def create_clothing_try_on_prompt(product_description: str = "clothing item") -> str:
     """Create a prompt for clothing virtual try-on"""
-    return f"""Create a realistic image showing a person wearing this {product_description}. 
+    return f"""Create a realistic image showing this person wearing this {product_description}. 
     The person should be wearing the clothing item naturally and comfortably. 
     The image should be high quality, well-lit, and show the clothing fitting properly on the person. 
     Make sure the clothing looks natural and realistic on the person."""
@@ -204,7 +204,7 @@ def create_furniture_try_on_prompt(product_description: str = "furniture item") 
 
 def create_phone_try_on_prompt(product_description: str = "phone item") -> str:
     """Create a prompt for phone virtual try-on"""
-    return f"""Create a realistic image showing a person holding this {product_description}. 
+    return f"""Create a realistic image showing this person holding this {product_description}. 
     The person should be holding the phone naturally and comfortably. 
     The image should be high quality, well-lit, and show the phone fitting properly in the person's hand. 
     Make sure the phone looks natural and realistic in the person's hand."""
