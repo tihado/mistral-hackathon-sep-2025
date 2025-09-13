@@ -63,6 +63,20 @@ uv sync --locked
 
 3. Set up environment variables (optional):
 
+Create a `.env` file in the project root:
+
+```bash
+# SerpAPI Configuration
+# Get your API key from: https://serpapi.com/
+SERPAPI_KEY=your_serpapi_key_here
+
+# Google Gemini API Configuration
+# Get your API key from: https://makersuite.google.com/app/apikey
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+Or export them directly:
+
 ```bash
 export SERPAPI_KEY="your_serpapi_key_here"
 export GEMINI_API_KEY="your_gemini_api_key_here"

@@ -87,10 +87,6 @@ def initialize_vector_db():
         vector_db = None
         embedding_model = None
 
-def get_serpapi_key():
-    """Get SerpAPI key from environment variable"""
-    return os.getenv('SERPAPI_KEY', 'your_serpapi_key_here')
-
 def get_gemini_api_key():
     """Get Gemini API key from environment variable"""
     return os.getenv('GEMINI_API_KEY', 'your_gemini_api_key_here')
