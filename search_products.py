@@ -21,8 +21,8 @@ def mock_search_products():
 def search_products(
     query: str, 
     num_results: int = 10, 
-    min_price: Optional[float] = None, 
-    max_price: Optional[float] = None, 
+    min_price: Optional[int] = None, 
+    max_price: Optional[int] = None, 
     free_shipping: Optional[bool] = None, 
     on_sale: Optional[bool] = None, 
     category: Optional[str] = None
@@ -62,9 +62,9 @@ def search_products(
     
     # Add optional filters
     if min_price is not None:
-        params["min_price"] = str(min_price)
+        params["min_price"] = str(int(min_price))
     if max_price is not None:
-        params["max_price"] = str(max_price)
+        params["max_price"] = str(int(max_price))
     if free_shipping is not None:
         params["free_shipping"] = "true" if free_shipping else "false"
     if on_sale is not None:
@@ -99,7 +99,7 @@ def search_products(
                 "brand": item.get("brand", ""),
                 "delivery": item.get("delivery", ""),
                 "original_price": item.get("old_price"),
-                "tags": item.get("tag", "").split(",").strip()
+                "tags": [tag.strip() for tag in item.get("tag", "").split(",") if tag.strip()]
             }
             products.append(product)
         

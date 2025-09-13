@@ -3,26 +3,18 @@ Shopping MCP Server with SerpAPI + Virtual Try-On
 """
 
 import os
-import json
-import base64
-import requests
 from typing import List, Optional, Dict, Any, Annotated, Literal
 from datetime import datetime
-from io import BytesIO
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field, BaseModel
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from sentence_transformers import SentenceTransformer
-from PIL import Image, ImageDraw, ImageFont
 import google.genai as genai
-import numpy as np
 from dotenv import load_dotenv
 from search_products import search_products
 from virtual_try_on import virtual_try_on
-
-import mcp.types as types
 
 load_dotenv()
 
@@ -110,8 +102,8 @@ def initialize_gemini():
 def search_products_tool(
     query: Annotated[str, "The search query for the desired products."],
     category: Annotated[Literal["clothing", "furniture", "other"], "The product category to filter results. This should be clothing, furniture, or other."],
-    min_price: Annotated[float, "The minimum price for filtering products."] = None,
-    max_price: Annotated[float, "The maximum price for filtering products."] = None,
+    min_price: Annotated[int, "The minimum price for filtering products."] = None,
+    max_price: Annotated[int, "The maximum price for filtering products."] = None,
     free_shipping: Annotated[bool, "Whether to filter products with free shipping."] = None,
     on_sale: Annotated[bool, "Whether to filter products on sale."] = None,
     num_results: Annotated[int, "The number of product results to return."] = 10,

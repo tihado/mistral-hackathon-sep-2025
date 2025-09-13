@@ -1,10 +1,10 @@
 [project]
 name = "shopping-mcp"
 version = "0.1.0"
-description = "Shopping MCP Server with SerpAPI + Virtual Try-On"
+description = "Shopping MCP Server"
 readme = "README.md"
 requires-python = ">=3.13"
-authors = [{ name = "Alpic" }]
+authors = [{ name = "Tihado" }]
 keywords = ["mcp", "llm", "shopping", "serpapi", "virtual-try-on"]
 dependencies = [
     "black>=25.1.0",
