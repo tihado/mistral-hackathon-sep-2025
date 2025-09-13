@@ -79,24 +79,9 @@ def initialize_vector_db():
         vector_db = None
         embedding_model = None
 
-def get_gemini_api_key():
-    """Get Gemini API key from environment variable"""
-    return os.getenv('GEMINI_API_KEY', 'your_gemini_api_key_here')
-
-def initialize_gemini():
-    """Initialize Google Generative AI with Gemini model"""
-    api_key = get_gemini_api_key()
-    if api_key == 'your_gemini_api_key_here':
-        return None
-    
-    try:
-        # Initialize the client with the API key
-        client = genai.Client(api_key=api_key)
-        # print("Gemini client initialized successfully")
-        return client
-    except Exception as e:
-        # print(f"Error initializing Gemini: {e}")
-        return None
+def get_openrouter_api_key():
+    """Get OpenRouter API key from environment variable"""
+    return os.getenv('OPENROUTER_API_KEY', 'your_openrouter_api_key_here')
 
 @mcp.tool()
 def search_products_tool(
@@ -117,11 +102,21 @@ def search_products_tool(
 
 @mcp.tool()
 def virtual_try_on_tool(
-    product_image_data: Annotated[str, "The image data of the product to try on."], 
-    user_image_data: Annotated[str, "The image data of the user to try on."]
+    product_image_data: Annotated[str, "The product image as URL or base64 encoded data to try on."], 
+    user_image_data: Annotated[str, "The user image as URL or base64 encoded data to try on (optional)."] = None,
+    category: Annotated[Literal["clothing", "furniture", "other"], "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, or 'other' for general items."] = "clothing"
   ):
-    """Virtually try on a product using AI image generation with both product and user images."""
-    return virtual_try_on(product_image_data, user_image_data)
+    """
+    Virtually try on a product using AI image generation with OpenRouter (Google Gemini 2.5 Flash).
+    
+    For clothing: Shows the person wearing the clothing item
+    For furniture: Shows the furniture item placed in a realistic room setting
+    For other: Shows the item in an appropriate context
+    
+    Supports both URL and base64 encoded image data for both product and user images.
+    Returns a generated image showing the virtual try-on result.
+    """
+    return virtual_try_on(product_image_data, user_image_data, category)
 
 
 @mcp.tool()
@@ -142,7 +137,15 @@ Always clarify and gather essential product preferences (e.g., color, price rang
 
 After searching for products with search_products, always use compare_products to help the user compare and select the best options before proceeding to virtual_try_on. Only use virtual_try_on after the user has selected a specific product from the compared results.
 
-If the user wants to try on a product, request their photo (if not already provided) and use virtual_try_on with the correct product_id and image.
+For virtual try-on:
+- For clothing: Use category="clothing" to show the person wearing the clothing item
+- For furniture: Use category="furniture" to show the furniture placed in a realistic room setting
+- For other items: Use category="other" to show the item in an appropriate context
+- Request the user's photo if they want to see themselves with the product
+- If no user photo is provided, the AI will generate a generic person wearing the clothing or a room with the furniture
+- Both product and user images can be provided as URLs or base64 encoded data
+
+If the user wants to try on a product, request their photo (if not already provided) and use virtual_try_on with the product image data and user image data.
 
 Guide the user step-by-step through the shopping process, connecting searching, comparing, and trying on products smoothly.
 
@@ -158,7 +161,13 @@ Assistant: (Call search_products with query="red dress", budget_max=100. Present
 Assistant: (Call compare_products with the search results. Present the top options as a product grid in the canvas, including product images, names, prices, and links as cards or tiles.)
 
 User: I like the second dress. Can I see how it looks on me?
-Assistant: "Please upload your photo." (Call virtual_try_on with product_id and user image. Show result.)
+Assistant: "Please upload your photo or provide a URL to your image." (Call virtual_try_on with product_image_data and user_image_data, category="clothing". Show result.)
+
+User: I want to see how this sofa looks in my living room.
+Assistant: "Please upload a photo of your living room or provide a URL to your room image." (Call virtual_try_on with product_image_data and user_image_data, category="furniture". Show result.)
+
+User: I want to see how this lamp looks in my bedroom.
+Assistant: "Please upload a photo of your bedroom or provide a URL to your room image." (Call virtual_try_on with product_image_data and user_image_data, category="other". Show result.)
 
 Always clarify needs, fill in missing details, and use the tools in this order: search_products → compare_products → virtual_try_on, to provide a seamless shopping experience."""
     }

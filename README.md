@@ -28,10 +28,12 @@ This MCP server integrates with Google Shopping via SerpAPI to provide real-time
 
 ### 👗 **Virtual Try-On**
 
-- AI-powered virtual try-on for clothing and furniture using Google Gemini
+- AI-powered virtual try-on for clothing, furniture, and other items using OpenRouter (Google Gemini 2.5 Flash)
 - Generate realistic try-on images using both product and user images
 - Multi-modal AI generation with personalized results
 - Support for both clothing and furniture placement with high-quality image generation
+- Flexible image input: supports both URLs and base64 encoded data for product and user images
+- **Persistent Storage**: Generated images are automatically uploaded to AWS S3 for permanent storage and public access
 
 ### 💰 **Price Tracking**
 
@@ -70,16 +72,27 @@ Create a `.env` file in the project root:
 # Get your API key from: https://serpapi.com/
 SERPAPI_KEY=your_serpapi_key_here
 
-# Google Gemini API Configuration
-# Get your API key from: https://makersuite.google.com/app/apikey
-GEMINI_API_KEY=your_gemini_api_key_here
+# OpenRouter API Configuration
+# Get your API key from: https://openrouter.ai/keys
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# AWS S3 Configuration (for virtual try-on image storage)
+# Get your credentials from: https://aws.amazon.com/
+AWS_ACCESS_KEY_ID=your_aws_access_key_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key_here
+AWS_S3_BUCKET_NAME=your_s3_bucket_name_here
+AWS_REGION=us-east-1
 ```
 
 Or export them directly:
 
 ```bash
 export SERPAPI_KEY="your_serpapi_key_here"
-export GEMINI_API_KEY="your_gemini_api_key_here"
+export OPENROUTER_API_KEY="your_openrouter_api_key_here"
+export AWS_ACCESS_KEY_ID="your_aws_access_key_here"
+export AWS_SECRET_ACCESS_KEY="your_aws_secret_key_here"
+export AWS_S3_BUCKET_NAME="your_s3_bucket_name_here"
+export AWS_REGION="us-east-1"
 ```
 
 ## Usage
@@ -90,7 +103,7 @@ Start the server on port 3000:
 uv run main.py
 ```
 
-The server will start with mock data if no API keys are provided, making it perfect for testing and development. For full functionality, provide both SerpAPI and Gemini API keys.
+The server will start with mock data if no API keys are provided, making it perfect for testing and development. For full functionality, provide both SerpAPI and OpenRouter API keys.
 
 ## Running the Inspector
 
@@ -146,13 +159,13 @@ Get personalized product recommendations based on user preferences.
 
 ### `virtual_try_on`
 
-Virtually try on clothing or furniture using AI image generation with both product and user images.
+Virtually try on clothing, furniture, or other items using AI image generation with both product and user images.
 
 **Parameters:**
 
-- `product_id` (string): ID of the product to try on
-- `user_image_data` (string, optional): Base64 encoded user image for try-on
-- `try_on_type` (string, optional): Type of try-on: 'clothing' or 'furniture' (default: 'clothing')
+- `product_image_data` (string): Product image as URL or base64 encoded data
+- `user_image_data` (string, optional): User image as URL or base64 encoded data
+- `category` (string, optional): Type of try-on: 'clothing', 'furniture', or 'other' (default: 'clothing')
 
 ### `track_price`
 
@@ -197,7 +210,8 @@ The server uses:
 - **Qdrant**: For vector database and semantic search
 - **Sentence Transformers**: For text embeddings
 - **SerpAPI**: For Google Shopping integration
-- **Google Generative AI**: For AI-powered virtual try-on image generation
+- **OpenRouter**: For AI-powered virtual try-on image generation using Google Gemini 2.5 Flash
+- **AWS S3**: For persistent storage of generated virtual try-on images
 - **PIL**: For image processing and fallback virtual try-on
 - **Pydantic**: For data validation and serialization
 
