@@ -3,7 +3,7 @@ Shopping MCP Server with SerpAPI + Virtual Try-On
 """
 
 import os
-from typing import Annotated, Literal
+from typing import Annotated, Literal, List, Dict, Any
 
 from mcp.server.fastmcp import FastMCP
 from qdrant_client import QdrantClient
