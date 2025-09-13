@@ -80,8 +80,8 @@ def get_openrouter_api_key():
 def search_products_tool(
     query: Annotated[str, "The search query for the desired products."],
     category: Annotated[
-        Literal["clothing", "furniture", "other"],
-        "The product category to filter results. This should be clothing, furniture, or other.",
+        Literal["clothing", "furniture", "other", "phone"],
+        "The product category to filter results. This should be clothing, furniture, phone, or other.",
     ],
     min_price: Annotated[int, "The minimum price for filtering products."] = None,
     max_price: Annotated[int, "The maximum price for filtering products."] = None,
@@ -105,6 +105,7 @@ def search_products_tool(
 
 @mcp.tool()
 def virtual_try_on_tool(
+    product_description: Annotated[str, "The description of the product to try on."],
     product_image_data: Annotated[
         str, "The product image as URL or base64 encoded data to try on."
     ],
@@ -112,8 +113,8 @@ def virtual_try_on_tool(
         str, "The user image as URL or base64 encoded data to try on."
     ],
     category: Annotated[
-        Literal["clothing", "furniture", "other"],
-        "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, or 'other' for general items.",
+        Literal["clothing", "furniture", "other", "phone"],
+        "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, 'phone' for holding items, or 'other' for general items.",
     ],
 ):
     """
@@ -121,12 +122,15 @@ def virtual_try_on_tool(
 
     For clothing: Shows the person wearing the clothing item
     For furniture: Shows the furniture item placed in a realistic room setting
+    For phone: Shows the phone item in the person's hand
     For other: Shows the item in an appropriate context
 
     Supports both URL and base64 encoded image data for both product and user images.
     Returns a generated image showing the virtual try-on result.
     """
-    return virtual_try_on(product_image_data, user_image_data, category)
+    return virtual_try_on(
+        product_description, product_image_data, user_image_data, category
+    )
 
 
 @mcp.tool()
@@ -150,6 +154,7 @@ After searching for products with search_products_tool, always use compare_produ
 For virtual try-on:
 - For clothing: Use category="clothing" to show the person wearing the clothing item
 - For furniture: Use category="furniture" to show the furniture placed in a realistic room setting
+- For phone: Use category="phone" to show the phone item in the person's hand
 - For other items: Use category="other" to show the item in an appropriate context
 - You must have both the product image and the user's image to use virtual_try_on_tool.
 - If the user image is not available, always ask the user to provide their portrait or a photo of themselves (for clothing), or a photo of their room (for furniture/other), before proceeding with virtual_try_on_tool.
