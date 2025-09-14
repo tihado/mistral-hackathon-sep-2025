@@ -303,7 +303,7 @@ Return the ranked product indices in order of relevance (most relevant first).
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://github.com/tihado/mistral-hackathon",
-            "X-Title": "Shopping MCP Server",
+            "X-Title": "LeLook MCP Server",
         }
 
         payload = {

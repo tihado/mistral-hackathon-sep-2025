@@ -73,7 +73,7 @@ def generate_image_with_openrouter(
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "X-Title": "Shopping MCP Server",
+            "X-Title": "LeLook MCP Server",
         }
 
         response = requests.post(

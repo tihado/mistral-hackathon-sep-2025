@@ -1,7 +1,7 @@
 [project]
-name = "shopping-mcp"
+name = "lelook"
 version = "0.1.0"
-description = "Shopping MCP Server"
+description = "LeLook - Le Chat finds you look"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [{ name = "Tihado" }]

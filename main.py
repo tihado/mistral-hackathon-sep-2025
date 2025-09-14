@@ -1,5 +1,6 @@
 """
-Shopping MCP Server with SerpAPI + Virtual Try-On
+LeLook MCP Server
+Le Chat finds you look
 """
 
 import os
@@ -33,7 +34,7 @@ class Product(TypedDict):
 
 
 # Initialize MCP server
-mcp = FastMCP("Shopping MCP Server", port=3000, stateless_http=True, debug=True)
+mcp = FastMCP("LeLook MCP Server", port=3000, stateless_http=True, debug=True)
 
 
 def get_openrouter_api_key():

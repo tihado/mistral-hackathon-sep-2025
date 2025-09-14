@@ -1,6 +1,6 @@
-# 🛍️ Shopping MCP Server: Your AI Shopping Buddy
+# 👗 LeLook: Your AI Shopping Buddy
 
-*Because who needs a personal shopper when you have an AI that never judges your questionable fashion choices?* 😄
+_Le Chat finds you look_ ✨
 
 A smart Model Context Protocol (MCP) server that turns your chat client into a shopping powerhouse. Search, compare, and virtually try on products without ever leaving your conversation. It's like having a shopping assistant who's always available, never gets tired, and actually remembers what you're looking for.
 
@@ -9,7 +9,7 @@ A smart Model Context Protocol (MCP) server that turns your chat client into a s
 This isn't your average "search and find" tool. We've built a **3-step shopping pipeline** that's smoother than a freshly ironed shirt:
 
 1. **🔍 Search** → Find products that actually match what you want
-2. **⚖️ Compare** → Let our AI do the heavy lifting of ranking the best options  
+2. **⚖️ Compare** → Let our AI do the heavy lifting of ranking the best options
 3. **👗 Try-On** → See how it looks on you (or in your space) before you buy
 
 No more endless scrolling through 47 pages of "similar items" that look nothing like what you searched for. Our AI actually understands what you want and finds the good stuff.
@@ -17,18 +17,21 @@ No more endless scrolling through 47 pages of "similar items" that look nothing 
 ## The Magic Features ✨
 
 ### 🔍 **Smart Product Search**
+
 - **Google Shopping Integration**: Real-time product search via SerpAPI
 - **Smart Filtering**: Price range, category, free shipping, sale items - you name it
 - **Category Support**: Clothing, furniture, phones, and everything else under the sun
 - **Rich Data**: Images, prices, ratings, reviews, seller info - the whole shebang
 
-### ⚖️ **AI-Powered Comparison** 
+### ⚖️ **AI-Powered Comparison**
+
 - **Smart Ranking**: Our AI actually understands what makes a product good
 - **Multi-Criteria Scoring**: Price, ratings, availability, completeness - we consider it all
 - **Top 5 Results**: No more decision paralysis from 200+ options
 - **Canvas-Ready**: Formatted perfectly for visual comparison grids
 
 ### 👗 **Virtual Try-On Magic**
+
 - **AI Image Generation**: Powered by OpenRouter (Google Gemini 2.5 Flash)
 - **Multi-Category Support**: Clothing, furniture, phones, and more
 - **Flexible Input**: URLs or base64 images - we're not picky
@@ -36,6 +39,7 @@ No more endless scrolling through 47 pages of "similar items" that look nothing 
 - **Cloud Storage**: Generated images saved to AWS S3 for permanent access
 
 ### 🧠 **Shopping Assistant**
+
 - **Mandatory Workflow**: Ensures you get the complete shopping experience every time
 - **Smart Clarification**: Asks the right questions before searching
 - **Canvas Display**: Always shows results in beautiful product grids
@@ -49,7 +53,7 @@ No more endless scrolling through 47 pages of "similar items" that look nothing 
 - **OpenRouter API key** (optional) - For virtual try-on wizardry
 - **AWS S3** (optional) - For storing your virtual try-on masterpieces
 
-*Don't have API keys? No worries! The server runs with mock data so you can test everything without spending a dime.*
+_Don't have API keys? No worries! The server runs with mock data so you can test everything without spending a dime._
 
 ## Installation (Let's Get This Party Started) 🚀
 
@@ -87,7 +91,7 @@ AWS_ENDPOINT_URL="https://..."
 AWS_PUBLIC_URL="https://..."
 ```
 
-*Pro tip: You can also export these as environment variables if you prefer the command line route.*
+_Pro tip: You can also export these as environment variables if you prefer the command line route._
 
 ## Usage (Time to Shop!) 🛒
 
@@ -102,6 +106,7 @@ The server will start with mock data if no API keys are provided, making it perf
 ## Testing Your Shopping Assistant 🧪
 
 ### Requirements
+
 - Node.js: ^22.7.5
 
 ### Quick Start (UI mode)
@@ -115,17 +120,20 @@ npx @modelcontextprotocol/inspector
 The inspector will be available at http://localhost:6274.
 
 Connect to your server:
+
 - **Transport Type**: Streamable HTTP
 - **URL**: http://127.0.0.1:3000/mcp
 
-*Now you can chat with your shopping assistant and see the magic happen!*
+_Now you can chat with your shopping assistant and see the magic happen!_
 
 ## Available MCP Tools (The Shopping Arsenal) 🛠️
 
 ### `search_products_tool` 🔍
-*The product hunter that actually finds what you're looking for*
+
+_The product hunter that actually finds what you're looking for_
 
 **Parameters:**
+
 - `query` (string): What you're looking for (be specific!)
 - `category` (string): "clothing", "furniture", "phone", or "other"
 - `min_price` (int, optional): Your budget's floor
@@ -137,9 +145,11 @@ Connect to your server:
 **Returns:** A list of products with all the juicy details
 
 ### `compare_products_tool` ⚖️
-*The AI that does the heavy lifting so you don't have to*
+
+_The AI that does the heavy lifting so you don't have to_
 
 **Parameters:**
+
 - `products` (List[Product]): The products from your search to compare
 
 **Returns:** Top 5 best options with mapped fields (name, price, image, link, rank, seller, rating, reviews_count)
@@ -147,9 +157,11 @@ Connect to your server:
 **What it does:** Analyzes products based on price, rating, availability, and completeness to return the top 5 best options formatted for canvas display.
 
 ### `virtual_try_on_tool` 👗
-*See how it looks before you buy (because returns are annoying)*
+
+_See how it looks before you buy (because returns are annoying)_
 
 **Parameters:**
+
 - `product_description` (string): What the product is
 - `product_image_data` (string): Product image (URL or base64)
 - `user_image_data` (string): Your image (URL or base64)
@@ -160,18 +172,21 @@ Connect to your server:
 **Magic:** For clothing (wearing), furniture (room placement), phone (holding), or other (appropriate context)
 
 ### `shopping_assistant` 🧠
-*The brain that orchestrates your entire shopping experience*
+
+_The brain that orchestrates your entire shopping experience_
 
 **Parameters:** None (it's smart enough to figure out what you need)
 
 **Returns:** The system prompt that makes everything work together
 
 **The Mandatory 3-Step Workflow:**
+
 1. **🔍 Search** → Find products that match your needs
 2. **⚖️ Compare** → Rank and filter to the best options
 3. **👗 Try-On** → See how it looks on you (or in your space)
 
 **Key Features:**
+
 - Always displays results in beautiful canvas grids
 - Asks the right questions before searching
 - Makes sure you have what you need for try-on
@@ -233,7 +248,7 @@ The architecture is designed to be easily extensible. Just follow the existing p
 
 This shopping assistant wouldn't exist without these amazing developers:
 
-- **[@nvti](https://github.com/nvti)** 
+- **[@nvti](https://github.com/nvti)**
 - **[@honghanhh](https://github.com/honghanhh)**
 
-*Want to join the team? We're always looking for more shopping enthusiasts!* 🛍️
+_Want to join the team? We're always looking for more shopping enthusiasts!_ 🛍️
