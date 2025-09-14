@@ -19,6 +19,11 @@ def get_serpapi_key():
     return os.getenv("SERPAPI_KEY", "your_serpapi_key_here")
 
 
+def get_openrouter_api_key():
+    """Get OpenRouter API key from environment variable"""
+    return os.getenv("OPENROUTER_API_KEY", "your_openrouter_api_key_here")
+
+
 def mock_search_products():
     return [
         {
@@ -205,6 +210,190 @@ def search_products_from_db(
         return [{"error": f"Vector database search failed: {str(e)}", "products": []}]
 
 
+def rerank_products_with_llm(
+    products: List[Dict[str, Any]], query: str, max_products: int = 10
+) -> List[Dict[str, Any]]:
+    """
+    Rerank products using LLM via OpenRouter API.
+
+    Args:
+        products: List of product dictionaries to rerank
+        query: Original search query for context
+        max_products: Maximum number of products to return
+
+    Returns:
+        List of reranked product dictionaries
+    """
+    if not products or len(products) == 0:
+        return products
+
+    api_key = get_openrouter_api_key()
+
+    if api_key == "your_openrouter_api_key_here":
+        print("Warning: OpenRouter API key not configured, skipping LLM reranking")
+        return products[:max_products]
+
+    try:
+        # Prepare product data for LLM
+        product_summaries = []
+        for i, product in enumerate(products):
+            summary = {
+                "index": i,
+                "title": product.get("title", ""),
+                "price": product.get("price", ""),
+                "currency": product.get("currency", ""),
+                "rating": product.get("rating", 0),
+                "reviews_count": product.get("reviews_count", 0),
+                "description": product.get("description", ""),
+                "brand": product.get("brand", ""),
+                "seller": product.get("seller", ""),
+                "delivery": product.get("delivery", ""),
+                "original_price": product.get("original_price", ""),
+                "tags": product.get("tags", []),
+            }
+            product_summaries.append(summary)
+
+        # Create prompt for LLM
+        prompt = f"""
+You are a shopping assistant that needs to rerank products based on relevance to a user's search query.
+
+Search Query: "{query}"
+
+Products to rank:
+{product_summaries}
+
+Please analyze each product and rank them from most relevant to least relevant for the search query "{query}".
+
+Consider these factors:
+1. Title relevance to the search query
+2. Price value and competitiveness
+3. Product rating and review count
+4. Brand reputation
+5. Seller reliability
+6. Delivery options
+7. Product completeness (description, images, etc.)
+8. Special offers (original price vs current price)
+
+Return the ranked product indices in order of relevance (most relevant first).
+"""
+
+        # Define the response schema for structured output
+        response_schema = {
+            "type": "object",
+            "properties": {
+                "ranked_indices": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": len(products) - 1,
+                    },
+                    "description": "Array of product indices in order of relevance (most relevant first)",
+                },
+                "reasoning": {
+                    "type": "string",
+                    "description": "Brief explanation of the ranking decisions",
+                },
+            },
+            "required": ["ranked_indices"],
+        }
+
+        # Make API request to OpenRouter with structured output
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/tihado/mistral-hackathon",
+            "X-Title": "Shopping MCP Server",
+        }
+
+        payload = {
+            "model": "google/gemini-2.5-flash-lite",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": "product_ranking", "schema": response_schema},
+            },
+        }
+
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=30,
+        )
+
+        if response.status_code != 200:
+            print(f"OpenRouter API error: {response.status_code} - {response.text}")
+            return products[:max_products]
+
+        response.raise_for_status()
+
+        result = response.json()
+
+        # Parse structured response
+        try:
+            import json
+
+            # Get the structured response content
+            response_content = result["choices"][0]["message"]["content"]
+
+            # Parse the JSON response (should be valid JSON due to structured output)
+            if isinstance(response_content, str):
+                structured_data = json.loads(response_content)
+            else:
+                structured_data = response_content
+
+            # Extract ranked indices from structured response
+            ranked_indices = structured_data.get("ranked_indices", [])
+            reasoning = structured_data.get("reasoning", "No reasoning provided")
+
+            print(f"LLM reasoning: {reasoning}")
+
+            # Validate indices
+            if not isinstance(ranked_indices, list):
+                raise ValueError("ranked_indices is not a list")
+
+            # Validate that all indices are valid
+            valid_indices = []
+            for idx in ranked_indices:
+                if isinstance(idx, int) and 0 <= idx < len(products):
+                    valid_indices.append(idx)
+                else:
+                    print(f"Warning: Invalid index {idx}, skipping")
+
+            # Create reranked products using valid indices
+            reranked_products = []
+            for idx in valid_indices:
+                reranked_products.append(products[idx])
+
+            # Add any remaining products that weren't ranked
+            ranked_indices_set = set(valid_indices)
+            for i, product in enumerate(products):
+                if i not in ranked_indices_set:
+                    reranked_products.append(product)
+
+            # Limit to max_products
+            final_products = reranked_products[:max_products]
+
+            print(f"LLM reranking: {len(products)} -> {len(final_products)} products")
+            return final_products
+
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
+            print(f"Error parsing structured LLM response: {e}")
+            print(
+                f"Response content: {result.get('choices', [{}])[0].get('message', {}).get('content', 'No content')}"
+            )
+            return products[:max_products]
+
+    except requests.exceptions.RequestException as e:
+        print(f"OpenRouter API request failed: {e}")
+        return products[:max_products]
+    except Exception as e:
+        print(f"Error in LLM reranking: {e}")
+        return products[:max_products]
+
+
 def search_products(
     query: str,
     num_results: int = 10,
@@ -299,13 +488,16 @@ def search_products(
 
         combined_results.sort(key=combined_score, reverse=True)
 
-        # Limit results
-        final_results = combined_results[:num_results]
+        # Apply LLM reranking to improve relevance
+        print(f"Applying LLM reranking to {len(combined_results)} products...")
+        reranked_results = rerank_products_with_llm(
+            combined_results, query, num_results
+        )
 
         print(
-            f"Combined search: {len(vector_results)} vector + {len(internet_results)} internet = {len(final_results)} unique results"
+            f"Combined search: {len(vector_results)} vector + {len(internet_results)} internet = {len(combined_results)} unique results -> {len(reranked_results)} after LLM reranking"
         )
-        return final_results
+        return reranked_results
 
     except Exception as e:
         print(f"Error in combined search: {e}")
