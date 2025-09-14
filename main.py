@@ -202,7 +202,7 @@ def virtual_try_on_tool(
 def compare_products_tool(
     products: Annotated[
         List[Dict[str, Any]],
-        "A list of Product objects to compare and rank. Each Product should contain at least title, price, and image_url fields.",
+        "A list of Product objects to compare and rank. Each Product should contain at least title, price, source_url, and image_url fields.",
     ],
 ) -> Dict[str, Any]:
     """
