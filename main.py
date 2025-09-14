@@ -12,6 +12,7 @@ from search_products import (
 )
 from virtual_try_on import virtual_try_on
 from compare_products import compare_products, ComparedProduct, generate_html_table
+from virtual_try_on_html_generator import generate_virtual_try_on_html_from_result
 
 load_dotenv()
 
@@ -164,11 +165,32 @@ def virtual_try_on_tool(
     For other: Shows the item in an appropriate context
 
     Supports both URL and base64 encoded image data for both product and user images.
-    Returns a generated image showing the virtual try-on result.
+    Returns a generated image showing the virtual try-on result with HTML display.
     """
-    return virtual_try_on(
+    # Perform virtual try-on
+    result = virtual_try_on(
         product_description, product_image_data, user_image_data, category
     )
+
+    if result.get("success") == True:
+        try:
+            # Generate HTML display
+            html_display = generate_virtual_try_on_html_from_result(
+                result, product_image_data, user_image_data
+            )
+
+            print("Successfully generated virtual try-on result")
+            return {
+                **result,
+                "html_display": html_display,
+                "system_prompt": "Display the virtual try-on results in the canvas view showing the product image, user image, and the generated try-on result.",
+            }
+        except Exception as e:
+            print(f"Error generating virtual try-on result: {e}")
+            return result
+
+    # Return both the original result and HTML display
+    return result
 
 
 @mcp.tool()
