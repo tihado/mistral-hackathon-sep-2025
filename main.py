@@ -6,7 +6,7 @@ Le Chat finds you look
 import os
 from typing import Annotated, Literal, List, Dict, Any, TypedDict, Optional
 
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from dotenv import load_dotenv
 from search_products import (
     search_products,
@@ -34,7 +34,7 @@ class Product(TypedDict):
 
 
 # Initialize MCP server
-mcp = FastMCP("LeLook MCP Server", port=3000, stateless_http=True, debug=True)
+mcp = FastMCP("LeLook MCP Server", port=8080, stateless_http=True, debug=True)
 
 
 def get_openrouter_api_key():
