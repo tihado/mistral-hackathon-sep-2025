@@ -210,6 +210,22 @@ def create_phone_try_on_prompt(product_description: str = "phone item") -> str:
     Make sure the phone looks natural and realistic in the person's hand."""
 
 
+def create_car_try_on_prompt(product_description: str = "car") -> str:
+    """Create a prompt for car virtual try-on/visualization"""
+    return f"""Create a realistic image showing this {product_description} parked in a modern, well-lit driveway or street setting. 
+    The car should be positioned naturally in the environment and complement the surrounding area. 
+    The image should be high quality, well-lit, and show the car fitting well in the realistic setting. 
+    Make sure the car looks natural and realistic in the driveway/street environment."""
+
+
+def create_house_try_on_prompt(product_description: str = "house") -> str:
+    """Create a prompt for house virtual try-on/visualization"""
+    return f"""Create a realistic image showing this {product_description} placed in a modern, well-lit neighborhood setting. 
+    The house should be positioned naturally in the environment and complement the surrounding neighborhood. 
+    The image should be high quality, well-lit, and show the house fitting well in the realistic neighborhood setting. 
+    Make sure the house looks natural and realistic in the neighborhood environment."""
+
+
 def create_other_try_on_prompt(product_description: str = "other item") -> str:
     """Create a prompt for other virtual try-on"""
     return f"""Create a realistic image showing this {product_description} placed in a modern, well-lit room. 
@@ -222,7 +238,7 @@ def virtual_try_on(
     product_description: str,
     product_image_data: str,
     user_image_data: str,
-    category: Literal["clothing", "furniture", "other", "phone"],
+    category: Literal["clothing", "furniture", "other", "phone", "car", "house"],
 ) -> Dict[str, Any]:
     """
     Virtually try on a product using AI image generation with both product and user images.
@@ -230,7 +246,7 @@ def virtual_try_on(
     Args:
         product_image_data: Product image as URL or base64 encoded data
         user_image_data: User image as URL or base64 encoded data (optional)
-        category: Type of try-on - "clothing", "furniture", or "other"
+        category: Type of try-on - "clothing", "furniture", "other", "phone", "car", or "house"
 
     Returns:
         Dict containing the result image data and metadata
@@ -279,6 +295,10 @@ def virtual_try_on(
             prompt = create_other_try_on_prompt(product_description)
         elif category == "phone":
             prompt = create_phone_try_on_prompt(product_description)
+        elif category == "car":
+            prompt = create_car_try_on_prompt(product_description)
+        elif category == "house":
+            prompt = create_house_try_on_prompt(product_description)
         else:
             prompt = create_clothing_try_on_prompt(product_description)
 

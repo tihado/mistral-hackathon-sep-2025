@@ -83,11 +83,13 @@ Virtual Try-On Guidelines:
 - For clothing: Use category="clothing" to show the person wearing the clothing item
 - For furniture: Use category="furniture" to show the furniture placed in a realistic room setting
 - For phone: Use category="phone" to show the phone item in the person's hand
+- For cars: Use category="car" to show the car in a realistic setting (driveway, street, etc.)
+- For houses: Use category="house" to show the house in a realistic neighborhood setting
 - For other items: Use category="other" to show the item in an appropriate context
 
 Image Requirements:
 - You must have both the product image and the user's image to use virtual_try_on_tool.
-- If the user image is not available, always ask the user to provide their portrait or a photo of themselves (for clothing), or a photo of their room (for furniture/other), before proceeding with virtual_try_on_tool.
+- If the user image is not available, always ask the user to provide their portrait or a photo of themselves (for clothing), a photo of their room (for furniture/other), a photo of their driveway/street (for cars), or a photo of their neighborhood (for houses), before proceeding with virtual_try_on_tool.
 - Do not proceed with virtual_try_on_tool until both images are provided.
 
 Display Guidelines:
@@ -120,8 +122,8 @@ Always clarify needs, fill in missing details, and use the tools in this EXACT o
 def search_products_tool(
     query: Annotated[str, "The search query for the desired products."],
     category: Annotated[
-        Literal["clothing", "furniture", "other", "phone"],
-        "The product category to filter results. This should be clothing, furniture, phone, or other.",
+        Literal["clothing", "furniture", "other", "phone", "car", "house"],
+        "The product category to filter results. This should be clothing, furniture, phone, other, car, or house.",
     ],
     min_price: Annotated[int, "The minimum price for filtering products."] = None,
     max_price: Annotated[int, "The maximum price for filtering products."] = None,
@@ -153,8 +155,8 @@ def virtual_try_on_tool(
         str, "The user image as URL or base64 encoded data to try on."
     ],
     category: Annotated[
-        Literal["clothing", "furniture", "other", "phone"],
-        "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, 'phone' for holding items, or 'other' for general items.",
+        Literal["clothing", "furniture", "other", "phone", "car", "house"],
+        "The type of virtual try-on: 'clothing' for wearing items, 'furniture' for room placement, 'phone' for holding items, 'other' for general items, 'car' for car visualization, or 'house' for house visualization.",
     ],
 ):
     """
@@ -163,6 +165,8 @@ def virtual_try_on_tool(
     For clothing: Shows the person wearing the clothing item
     For furniture: Shows the furniture item placed in a realistic room setting
     For phone: Shows the phone item in the person's hand
+    For cars: Shows the car in a realistic driveway/street setting
+    For houses: Shows the house in a realistic neighborhood setting
     For other: Shows the item in an appropriate context
 
     Supports both URL and base64 encoded image data for both product and user images.
