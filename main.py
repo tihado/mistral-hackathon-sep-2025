@@ -11,7 +11,7 @@ from search_products import (
     search_products,
 )
 from virtual_try_on import virtual_try_on
-from compare_products import compare_products, ComparedProduct
+from compare_products import compare_products, ComparedProduct, generate_html_table
 
 load_dotenv()
 
@@ -177,13 +177,13 @@ def compare_products_tool(
         List[Dict[str, Any]],
         "A list of Product objects to compare and rank. Each Product should contain at least title, price, and image_url fields.",
     ],
-) -> List[ComparedProduct]:
+) -> Dict[str, Any]:
     """
     Compares and ranks products to help users select the best options from search results.
 
     Analyzes products based on price, rating, availability, and completeness to return the top 5 best options.
     Returns products with mapped fields (name, price, image, link, rank, seller, rating, reviews_count)
-    formatted for canvas display.
+    formatted for canvas display, plus an HTML table for easy viewing.
     """
     try:
         # Ensure all products have required fields with defaults
@@ -202,9 +202,26 @@ def compare_products_tool(
             }
             normalized_products.append(normalized_product)
 
-        return compare_products(normalized_products)
+        # Get compared products
+        compared_products = compare_products(normalized_products)
+
+        # Generate HTML table
+        html_table = generate_html_table(
+            compared_products, "Product Comparison Results"
+        )
+
+        return {
+            "system_prompt": "Showing the html table of the compared products in the canvas view.",
+            "compared_products": compared_products,
+            "html_table": html_table,
+            "summary": f"Found {len(compared_products)} top product recommendations",
+        }
     except Exception as e:
-        return products
+        return {
+            "compared_products": products,
+            "html_table": "<p>Error generating comparison results.</p>",
+            "summary": "Error occurred during product comparison",
+        }
 
 
 if __name__ == "__main__":
